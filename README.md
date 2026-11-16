@@ -1,39 +1,47 @@
-# Nine Petals
+# Flight to Nine
 
-A game for IELTS practice. Open `index.html` in a browser; there is nothing to install or build.
+An IELTS practice game. Open `index.html` in a browser; there is nothing to install or build.
 
-A sitting is six short papers, thirty questions in all. Every right answer grows a leaf on a
-cyanotype specimen, and at the end the flower opens with one petal for each band you earned.
+Every question arrives as a row of gates in the sky, one gate per answer. Steer your plane into the
+right one before it reaches you. Lock in early for more points, and chain right answers to build a
+multiplier and speed.
 
-| Paper | Skill | What you do |
+## Modes
+
+- **Full flight.** Six legs of five gates in IELTS order, ending in a band score. Your destination
+  sets the speed and the band you need to land there: Dublin 5.5, Toronto 6.5, Sydney 7.0, London 7.5.
+- **Endless jetstream.** Gates from every skill, faster and faster, until you lose three shields.
+- **Training.** Ten gates of one skill.
+
+| Leg | Skill | Gates |
 | --- | --- | --- |
-| I | Listening | Hear one detail from a phone call and complete the form |
-| II | Reading | True, False or Not Given |
-| III | Vocabulary | Link everyday words to their academic paraphrases |
-| IV | Writing Task 1 | Match trend descriptions to line graphs |
-| V | Writing Task 2 | Tap the one wrong word in a sentence |
-| VI | Cohesion | Choose the linking word that fits |
+| 1 | Listening | Hear a caller and pick the detail they gave. The wrong gates are real IELTS traps |
+| 2 | Reading | True, False or Not Given |
+| 3 | Vocabulary | The academic paraphrase of an everyday word |
+| 4 | Writing Task 1 | The graph a trend sentence describes |
+| 5 | Writing Task 2 | The one marked word that is wrong |
+| 6 | Cohesion | The linking word that fits the gap |
 
-You can also practise a single paper, switch the timer or the sound effects off, and replay the
-questions you got wrong. Progress is kept in the browser's local storage.
+## Controls
+
+- **Steer:** ← → or A D, the number keys, a swipe, or a tap on a gate or an answer card.
+- **Lock in early:** Space, Enter or ↑, a swipe up, or a second tap on your card.
+- **Pause:** Esc or P.
+
+"Gates wait for me" on the boarding pass stops each gate short of the plane until you lock in.
 
 ## Scoring and rewards
 
-- **Score and streaks.** A right answer is worth 100 points plus up to 100 for speed. Every three
-  right answers in a row raise the multiplier, up to ×5. A wrong answer resets it.
-- **Endless meadow.** Papers keep coming until you make three mistakes. Your best run is saved.
-- **Levels.** Score turns into XP, and each level has a title, from Seed to Nine-petal laureate.
-- **Plate colours.** Levels 3, 5, 7 and 9 unlock new colours for the specimen plate.
-- **Badges.** Fifteen to earn, for streaks, bands, daily play and fixing old mistakes.
+A right answer is worth 100 points plus up to 200 for locking in early. Every three in a row raises
+the multiplier, up to ×5. Right answers also release a trail of air-mile coins to steer through.
+Air miles raise your pilot rank, and there are nine passport stamps to collect. Questions you get
+wrong come back later as retakes.
 
 The band uses the IELTS Listening raw-score table, scaled from 40 questions to 30. It is a game
-score, not a prediction of a real result.
+score, not a prediction of a real result. Progress is kept in the browser's local storage.
 
 ## Sound
 
-The Listening paper plays 56 recorded lines that are embedded in `index.html`, so it needs no
-network and no speech engine on the device. If a browser cannot play them, the line can be shown
-briefly instead. Right and wrong answers and the opening flower have soft sound effects.
-
-The recordings were synthesised with the Piper voice `en_GB-cori-medium`, which was trained on
-public-domain LibriVox recordings.
+The Listening leg plays 56 recorded lines embedded in `index.html`, so it needs no network and no
+speech engine on the device. They were synthesised with the Piper voice `en_GB-cori-medium`, which
+was trained on public-domain LibriVox recordings.
