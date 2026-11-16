@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Nine Petals</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: a specimen desk. The cyanotype plate stays on the left (a strip on phones)
+   and grows as you play; the question sheet sits beside it. */
+:root{
+  --paper:#edf1f4; --sheet:#f9fbfc; --ink:#12324f; --ink-soft:#506a84;
+  --line:#c5d2dc; --line-soft:#dae3ea; --tint:#dfe9f1;
+  --blue:#1c4f80; --on-blue:#f3f8fc;
+  --sun:#d49a1e;
+  --good:#1d7557; --good-bg:#d9eee5; --bad:#b03a49; --bad-bg:#f7e0e3;
+  /* the plate is a printed object: the same blues in either theme */
+  --plate-a:#27639a; --plate-b:#1a4c7c; --plate-c:#0f3558; --print:#e8f2f9; --gold:#e6b450;
+  --display:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --body:"Hanken Grotesk","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"DM Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0a1520; --sheet:#101f2e; --ink:#e2ecf4; --ink-soft:#9ab0c4;
+    --line:#2b4057; --line-soft:#1b2d3f; --tint:#172a3c;
+    --blue:#cfe2f2; --on-blue:#0a1520;
+    --sun:#e6b450;
+    --good:#74d1ac; --good-bg:#11352b; --bad:#f2919c; --bad-bg:#3b1a20;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0a1520; --sheet:#101f2e; --ink:#e2ecf4; --ink-soft:#9ab0c4;
+  --line:#2b4057; --line-soft:#1b2d3f; --tint:#172a3c;
+  --blue:#cfe2f2; --on-blue:#0a1520;
+  --sun:#e6b450;
+  --good:#74d1ac; --good-bg:#11352b; --bad:#f2919c; --bad-bg:#3b1a20;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+p,h1,h2,blockquote,ul,figure{margin:0}
+:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+
+.app{max-width:1120px;margin:0 auto;padding-block:20px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:24px}
+.mast{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);padding-bottom:12px}
+.wordmark{font:italic 600 30px/1 var(--display);letter-spacing:.01em}
+.mono{font:400 12.5px/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+
+.desk{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:44px;align-items:start}
+.plate-col{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:6px;min-width:0}
+#plate{display:block;width:100%;aspect-ratio:4/5;max-height:min(640px,78vh)}
+.plate-label{display:flex;justify-content:space-between;gap:4px 16px;flex-wrap:wrap;padding-inline:10px}
+.panel{min-width:0}
+
+/* ---------- shared pieces ---------- */
+.kicker{font:400 12.5px/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:1px solid var(--blue);
+  border-radius:3px;background:var(--blue);color:var(--on-blue);font-weight:600;cursor:pointer;transition:transform .12s,opacity .12s}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-quiet{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-quiet:hover:not(:disabled){border-color:var(--blue);background:var(--tint)}
+.linkish{background:none;border:0;padding:4px 0;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:15px}
+.linkish:hover{color:var(--ink)}
+.fine{font-size:14px;color:var(--ink-soft);max-width:60ch}
+
+/* ---------- home ---------- */
+.home{display:flex;flex-direction:column;gap:28px}
+.home h1{font:500 clamp(38px,5.4vw,58px)/1.02 var(--display);letter-spacing:-.01em;text-wrap:balance;max-width:14ch}
+.home h1 em{font-style:italic;font-weight:500}
+.lede{max-width:54ch;color:var(--ink-soft)}
+.begin{display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap}
+.begin .btn{padding:15px 28px;font-size:18px}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--ink-soft);cursor:pointer}
+.switch input{width:17px;height:17px;accent-color:var(--blue);margin:0}
+.papers-list{display:flex;flex-direction:column;gap:10px}
+.rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:baseline;gap:12px;width:100%;text-align:left;
+  padding:13px 6px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.row:hover{background:var(--tint)}
+.row .num{font:italic 500 22px/1 var(--display);color:var(--ink-soft)}
+.row .what{min-width:0}
+.row .what b{font-weight:600}
+.row .what span{color:var(--ink-soft);font-size:15px}
+.row .best{font:400 12.5px var(--mono);color:var(--ink-soft);white-space:nowrap}
+.home-foot{display:flex;gap:10px 24px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+/* ---------- play ---------- */
+.play{display:flex;flex-direction:column;gap:18px}
+.play-head{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.ph-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ph-title b{font:italic 600 24px/1.1 var(--display)}
+.ph-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:15px;color:var(--ink-soft)}
+.pips{display:flex;gap:7px;flex-wrap:wrap}
+.pips span{display:flex;gap:2px}
+.pips i{width:6px;height:12px;border:1px solid var(--line);border-radius:1px;background:transparent}
+.pips i.ok{background:var(--ink);border-color:var(--ink)}
+.pips i.no{background:var(--gold);border-color:var(--gold)}
+.pips i.now{border-color:var(--ink)}
+.sunbar{height:3px;background:var(--line-soft);overflow:hidden}
+.sunbar i{display:block;height:100%;background:var(--sun);transform-origin:left center}
+#stage{display:flex;flex-direction:column;gap:18px}
+
+.intro h2{font:500 clamp(32px,4.4vw,46px)/1.05 var(--display);text-wrap:balance}
+.intro{display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding-block:12px}
+.intro p{max-width:52ch}
+.intro .tip{color:var(--ink-soft);font-size:15px}
+
+.passage{font:500 22px/1.38 var(--display);padding-block:14px;border-block:1px solid var(--line);max-width:62ch}
+.statement{font-size:19px;font-weight:600;line-height:1.4;max-width:60ch;text-wrap:pretty}
+.gap{display:inline-block;min-width:92px;border-bottom:2px solid var(--ink);text-align:center;font-weight:600;padding-inline:6px}
+.gap.filled{border-color:var(--good);color:var(--good)}
+.hint{font-size:15px;color:var(--ink-soft)}
+
+.opts{display:grid;gap:10px}
+.opts-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;width:100%;min-width:0;padding:13px 14px;background:var(--sheet);
+  border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--blue);background:var(--tint)}
+.opt:disabled{cursor:default;color:var(--ink-soft)}
+.opt.is-right{border-color:var(--good);background:var(--good-bg);color:var(--ink)}
+.opt.is-wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--ink)}
+kbd{font:500 12px/1 var(--mono);border:1px solid var(--line);border-radius:2px;min-width:22px;height:22px;display:inline-grid;
+  place-items:center;color:var(--ink-soft);flex:none;background:transparent}
+.opt-chart{flex-direction:column;align-items:stretch;gap:4px;padding:8px 10px 6px}
+.opt-chart kbd{align-self:flex-start}
+
+.chart{display:block;width:100%;height:auto}
+.chart .grid{stroke:var(--line);stroke-width:1;fill:none}
+.chart .ln{stroke:var(--ink);stroke-width:2.2;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.chart .dot{fill:var(--ink)}
+.chart text{fill:var(--ink-soft);font:9px var(--mono)}
+.bigchart{max-width:460px;border:1px solid var(--line);border-radius:3px;background:var(--sheet);padding:10px 12px 4px}
+
+.sentence{display:flex;flex-wrap:wrap;gap:8px 6px;font-size:20px;line-height:1.3}
+.tok{padding:6px 9px;background:var(--sheet);border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:border-color .15s,background .15s}
+.tok:hover:not(:disabled){border-color:var(--blue);background:var(--tint)}
+.tok:disabled{cursor:default}
+.tok.is-right{border-color:var(--good);background:var(--good-bg)}
+.tok.is-wrong{border-color:var(--bad);background:var(--bad-bg)}
+.fixed{font-size:18px}
+.fixed del{color:var(--bad)}
+.fixed ins{color:var(--good);font-weight:600;text-decoration:none;border-bottom:2px solid var(--good)}
+
+.pairs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 28px}
+.pairs .col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tile{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:50px;padding:10px 14px;text-align:left;
+  background:var(--sheet);border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:border-color .15s,background .15s}
+.tile:hover:not(:disabled){border-color:var(--blue);background:var(--tint)}
+.tile.is-sel{border-color:var(--ink);background:var(--tint);box-shadow:inset 0 0 0 1px var(--ink)}
+.tile:disabled{cursor:default}
+.tile.is-right{border-color:var(--good);background:var(--good-bg)}
+.tile.is-wrong{border-color:var(--bad);background:var(--bad-bg)}
+.tile .tag{font:500 12px var(--mono);color:var(--ink-soft)}
+.col-acad .tile{font-style:italic}
+
+.formcard{display:flex;flex-direction:column;gap:16px;padding:20px;background:var(--sheet);border:1px solid var(--line);border-radius:3px;max-width:520px}
+.form-title{font:italic 600 24px/1.1 var(--display)}
+.form-actions{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}
+.glimpse{font:500 21px/1.35 var(--display);padding:10px 12px;background:var(--tint);border-radius:3px}
+.field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:end}
+.field label{grid-column:1/-1;font:400 12.5px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+.field input{min-width:0;width:100%;padding:10px 2px;background:transparent;border:0;border-bottom:2px solid var(--ink);border-radius:0;font:500 20px var(--mono)}
+.field input:disabled{border-bottom-color:var(--line);opacity:.7}
+.field input.is-right{border-bottom-color:var(--good);color:var(--good);opacity:1}
+.field input.is-wrong{border-bottom-color:var(--bad);color:var(--bad);opacity:1}
+
+.fb{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:14px 16px;border-radius:3px;animation:rise .28s ease-out}
+.fb.is-good{background:var(--good-bg)}
+.fb.is-bad{background:var(--bad-bg)}
+.fb-head{font-weight:600}
+.fb.is-good .fb-head{color:var(--good)}
+.fb.is-bad .fb-head{color:var(--bad)}
+.fb p{max-width:62ch}
+.fb .btn{margin-top:6px}
+.fb ul{padding-left:18px;display:flex;flex-direction:column;gap:2px}
+@keyframes rise{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}
+
+/* ---------- result ---------- */
+.result{display:flex;flex-direction:column;gap:24px}
+.band{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.band-n{font:500 clamp(96px,14vw,150px)/.8 var(--display);font-variant-numeric:lining-nums;letter-spacing:-.03em}
+.band-side{display:flex;flex-direction:column;gap:2px;padding-bottom:6px}
+.band-d{font:italic 500 26px/1.15 var(--display)}
+.score-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.score-table td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.score-table tr:first-child td{border-top:1px solid var(--line)}
+.score-table .num{font:italic 500 20px/1 var(--display);color:var(--ink-soft);width:34px}
+.score-table .sc{text-align:right;font:400 14px var(--mono);white-space:nowrap}
+.score-table .pips{justify-content:flex-end}
+details.misses{border-block:1px solid var(--line);padding-block:12px}
+details.misses summary{cursor:pointer;font-weight:600}
+details.misses ul{list-style:none;padding:0;margin-top:12px;display:flex;flex-direction:column;gap:14px}
+details.misses li{display:flex;flex-direction:column;gap:2px;font-size:15.5px;max-width:64ch}
+details.misses li b{font-weight:600}
+details.misses li span{color:var(--ink-soft)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.confirm{display:inline-flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+@media (max-width:820px){
+  .desk{grid-template-columns:minmax(0,1fr);gap:20px}
+  .plate-col{position:static}
+  #plate{aspect-ratio:1/1;max-height:420px}
+  .desk[data-screen="home"] #plate{max-height:290px}
+  .desk[data-screen="play"] #plate{aspect-ratio:auto;height:150px}
+  .desk[data-screen="play"] .plate-label span:last-child{display:none}
+}
+@media (max-width:520px){
+  body{font-size:16px}
+  .opts-3,.opts-2{grid-template-columns:minmax(0,1fr)}
+  .opts-charts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .passage{font-size:20px}
+  .statement{font-size:17.5px}
+  .sentence{font-size:18px}
+  .pairs{gap:10px 12px}
+  .tile{padding:8px 10px;font-size:15px}
+  .formcard{padding:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="mast">
+    <span class="wordmark">Nine Petals</span>
+    <span class="mono">A game for IELTS</span>
+  </header>
+  <main class="desk" id="desk" data-screen="home">
+    <div class="plate-col">
+      <canvas id="plate" role="img" aria-label="Cyanotype specimen"></canvas>
+      <p class="plate-label mono" id="plateLabel"><span></span><span></span></p>
+    </div>
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rand = n => Math.floor(Math.random() * n);
+const pick = a => a[rand(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+const pad3 = n => String(n).padStart(3, '0');
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+
+/* ================= content ================= */
+const PAPERS = [
+  { key: 'listen', skill: 'Listening', name: 'Take it down',
+    how: 'You will hear one detail from a phone call. Type exactly what belongs on the form.',
+    tip: 'Names are spelt out once. Numbers are not repeated, so listen for “double” and for -teen against -ty.' },
+  { key: 'tfng', skill: 'Reading', name: 'True, False, Not Given',
+    how: 'Judge each statement using the passage alone, never what you happen to know.',
+    tip: 'False means the passage says the opposite. Not Given means the passage does not say.' },
+  { key: 'pairs', skill: 'Vocabulary', name: 'Paraphrase pairs',
+    how: 'Link each everyday word on the left to its academic twin on the right.',
+    tip: 'A wrong link loses that pair, so be sure before the second tap.' },
+  { key: 'chart', skill: 'Writing Task 1', name: 'Read the line',
+    how: 'Match a description of a trend to the graph it describes, or the graph to its description.',
+    tip: 'Watch the adverbs. “Sharply” and “slightly” are different shapes.' },
+  { key: 'proof', skill: 'Writing Task 2', name: 'Proofreader',
+    how: 'Each sentence hides one mistake that costs candidates marks. Tap the word that is wrong.',
+    tip: 'Check uncountable nouns, verb agreement and prepositions first.' },
+  { key: 'link', skill: 'Cohesion', name: 'The missing link',
+    how: 'Choose the linking word that fits both the grammar and the logic of the sentence.',
+    tip: 'Ask what follows the gap: a full clause, a noun phrase or a bare verb.' },
+];
+const REVIEW_PAPER = { key: 'review', skill: 'Review', name: 'Your mistakes, once more',
+  how: 'These are questions you got wrong before. Answer one correctly and it leaves the list.',
+  tip: 'Take your time. The explanations appear after each answer.' };
+const SECS = { listen: 35, tfng: 45, pairs: 45, chart: 30, proof: 25, mcq: 22 };
+const paperOf = k => PAPERS.find(p => p.key === k) || REVIEW_PAPER;
+
+const TFNG = [
+  { p: 'Urban beekeeping has grown rapidly in London over the past decade. Some ecologists warn, however, that the density of hives in the city centre now exceeds what the available flowers can support.',
+    s: [['T', 'Some ecologists believe central London has more hives than its flowers can sustain.', '“Exceeds what the available flowers can support” is paraphrased as “more hives than its flowers can sustain”.'],
+        ['F', 'Interest in keeping bees in London has declined over the last ten years.', 'The passage says urban beekeeping “has grown rapidly”, the opposite of declining.'],
+        ['NG', 'Honey produced in the city sells for more than honey from the countryside.', 'The passage never mentions prices or countryside honey.']] },
+  { p: 'The first lighthouse on the Eddystone rocks was completed in 1698 and was built largely of wood. It survived only five years before being destroyed in a storm.',
+    s: [['T', 'The original Eddystone lighthouse stood for less than a decade.', 'It was completed in 1698 and destroyed five years later, well under ten years.'],
+        ['F', 'The first lighthouse on the Eddystone rocks was constructed mainly from stone.', 'It “was built largely of wood”, not stone.'],
+        ['NG', 'The storm that destroyed the lighthouse also sank several ships.', 'A storm destroyed the lighthouse, but nothing is said about ships.']] },
+  { p: 'In a study of 400 office workers, those who took short walking breaks every hour reported better concentration in the afternoon. The researchers did not record where the walks took place.',
+    s: [['T', 'Workers who walked briefly each hour said they could concentrate better later in the day.', '“Reported better concentration in the afternoon” matches “said they could concentrate better later in the day”.'],
+        ['F', 'The study involved fewer than 100 participants.', 'The study covered 400 office workers.'],
+        ['NG', 'Most participants chose to walk outdoors rather than inside the building.', 'The researchers did not record where people walked, so the passage cannot tell us.']] },
+  { p: 'The Atacama Desert receives almost no rainfall, and some of its weather stations have never recorded any. Even so, more than a million people live in the region, mainly in coastal cities.',
+    s: [['T', 'Rain has never been registered at certain weather stations in the Atacama.', '“Have never recorded any” rainfall means no rain has been registered there.'],
+        ['F', 'The Atacama is almost entirely uninhabited.', 'More than a million people live in the region.'],
+        ['NG', 'Most residents of the region work in the mining industry.', 'The passage says where people live, not what work they do.']] },
+  { p: 'The museum’s new gallery opens to the public on 3 May. Entry will be free for the first month, after which adult tickets will cost £8; children under twelve will continue to enter without charge.',
+    s: [['T', 'Adults visiting in the opening week will not need to buy a ticket.', 'Entry is free for the first month, which includes the opening week.'],
+        ['F', 'Children under twelve will be charged for entry once the first month has ended.', 'Children under twelve “will continue to enter without charge”.'],
+        ['NG', 'The new gallery was paid for by a private donation.', 'The passage gives dates and prices but says nothing about funding.']] },
+  { p: 'Sleep researchers once assumed that teenagers stayed up late purely out of habit. It is now widely accepted that a biological shift in adolescence delays the time at which the body feels ready for sleep.',
+    s: [['T', 'Scientists’ explanation for teenagers’ late nights has changed.', 'They “once assumed” habit; a biological shift is “now widely accepted”.'],
+        ['F', 'Researchers now agree that staying up late in adolescence is simply a habit.', 'Habit was the old assumption. The accepted cause now is biological.'],
+        ['NG', 'Schools that start later in the morning achieve better exam results.', 'School start times and exam results are not mentioned.']] },
+  { p: 'The Kelder Bridge was designed to carry 20,000 vehicles a day. Within three years of opening, daily traffic had reached nearly twice that figure, and engineers began inspecting the structure every month rather than once a year.',
+    s: [['T', 'Inspections of the bridge became more frequent after traffic increased.', 'Engineers moved from yearly to monthly inspections once traffic had nearly doubled.'],
+        ['F', 'Traffic on the bridge has remained within the level it was designed for.', 'Traffic reached nearly twice the 20,000 vehicles a day it was designed for.'],
+        ['NG', 'A second bridge is being built to relieve the congestion.', 'No plans for another bridge are mentioned.']] },
+  { p: 'Printed books still account for the majority of the publisher’s income, although sales of audiobooks have risen every year since 2018. E-book revenue, by contrast, has been flat for some time.',
+    s: [['T', 'The publisher earns more from printed books than from any other format.', 'Printed books bring in “the majority” of income, so more than all other formats together.'],
+        ['F', 'Income from e-books has been growing steadily.', 'E-book revenue “has been flat”, so it has not grown.'],
+        ['NG', 'Audiobooks are more popular with younger customers.', 'The passage does not describe who buys audiobooks.']] },
+  { p: 'Volunteers planted 5,000 native trees along the river in 2019. A survey two years later found that roughly four in five had survived, a rate the organisers described as far higher than expected.',
+    s: [['T', 'About 80 per cent of the trees were still alive in 2021.', 'Two years after 2019 is 2021, and “four in five” is 80 per cent.'],
+        ['F', 'The organisers were disappointed by the survival rate.', 'They called the rate “far higher than expected”, so they were pleased.'],
+        ['NG', 'The trees were planted to reduce flooding.', 'The reason for planting the trees is never stated.']] },
+  { p: 'The city’s bicycle-hire scheme is open to anyone over the age of sixteen. The first thirty minutes of every journey are free, but users must register a payment card before unlocking a bike.',
+    s: [['T', 'A payment card is required even for journeys that cost nothing.', 'Users must register a card “before unlocking a bike”, even though the first thirty minutes are free.'],
+        ['F', 'Fourteen-year-olds are allowed to hire the bicycles.', 'The scheme is open only to people over sixteen.'],
+        ['NG', 'The scheme has reduced car use in the city centre.', 'The passage does not discuss the scheme’s effect on car use.']] },
+  { p: 'Coffee was first grown commercially in Yemen, and for generations the port of Mocha dominated the trade. Today the country produces only a tiny fraction of the world’s supply.',
+    s: [['T', 'Yemen’s share of global coffee production is now very small.', '“Only a tiny fraction of the world’s supply” means a very small share.'],
+        ['F', 'The port of Mocha played only a minor part in the early coffee trade.', 'Mocha “dominated the trade”, so its part was a major one.'],
+        ['NG', 'Coffee grown in Yemen is more expensive than coffee from Brazil.', 'No prices are compared in the passage.']] },
+  { p: 'Applicants for the grant must submit a two-page proposal by 30 September. Late submissions will not be considered, and successful applicants will be notified by email in November.',
+    s: [['T', 'A proposal handed in on 2 October would be rejected.', 'The deadline is 30 September and late submissions “will not be considered”.'],
+        ['F', 'Successful applicants will be informed of the result by post.', 'Successful applicants are told “by email”.'],
+        ['NG', 'Each successful applicant will receive the same amount of money.', 'The size of the grant is not mentioned.']] },
+  { p: 'Glass can be recycled indefinitely without any loss of quality. Nevertheless, in many regions less than half of all glass containers are collected, largely because transporting such a heavy material is costly.',
+    s: [['T', 'The weight of glass is one reason why much of it is not collected.', 'Collection is low “largely because transporting such a heavy material is costly”.'],
+        ['F', 'Glass becomes weaker each time it is recycled.', 'Glass can be recycled “without any loss of quality”.'],
+        ['NG', 'Recycling glass uses less energy than recycling plastic.', 'The passage makes no comparison with plastic or with energy use.']] },
+  { p: 'The language school runs classes on weekday evenings only. Each course lasts ten weeks, and students who miss more than two sessions are not eligible for the end-of-course certificate.',
+    s: [['T', 'A student who is absent for three sessions cannot receive the certificate.', 'Missing “more than two sessions” removes eligibility, and three is more than two.'],
+        ['F', 'Some classes at the school take place on Saturdays.', 'Classes run “on weekday evenings only”.'],
+        ['NG', 'Classes at the school contain a maximum of twelve students.', 'Class size is not mentioned.']] },
+  { p: 'Only one of the island’s three ferries runs in winter, and it does not carry vehicles. Residents who need to take a car to the mainland must book a place on a cargo boat at least a week in advance.',
+    s: [['T', 'In winter, islanders cannot take a car on the ferry.', 'The one ferry that runs in winter “does not carry vehicles”.'],
+        ['F', 'Two ferries serve the island during the winter months.', '“Only one” of the three ferries runs in winter.'],
+        ['NG', 'A place on the cargo boat costs more than a summer ferry ticket.', 'The passage does not mention the cost of either crossing.']] },
+  { p: 'The survey found that 62 per cent of commuters would cycle to work if protected lanes were available. At present, fewer than one in ten do so.',
+    s: [['T', 'More than half of commuters say they would cycle if there were protected lanes.', '62 per cent is more than half.'],
+        ['F', 'Around a quarter of commuters currently cycle to work.', '“Fewer than one in ten” currently cycle, which is under 10 per cent.'],
+        ['NG', 'Most commuters who drive do so because public transport is unreliable.', 'Reasons for driving are not discussed.']] },
+];
+
+// [sentence with the [wrong] word bracketed, correction ('' = delete it), why]
+const PROOF = [
+  ['The government should provide more [informations] about public health.', 'information', '“Information” is uncountable, so it has no plural.'],
+  ['Despite [of] the high cost, many families choose private education.', '', '“Despite” is followed directly by a noun. Only “in spite” takes “of”.'],
+  ['The number of cars on the road [have] increased dramatically.', 'has', '“The number of…” takes a singular verb.'],
+  ['Nowadays, more and more people [prefers] to work from home.', 'prefer', '“People” is plural, so the verb has no -s.'],
+  ['This essay will discuss [about] both views before giving my opinion.', '', '“Discuss” takes a direct object: discuss both views.'],
+  ['Pollution has a serious [affect] on human health.', 'effect', '“Effect” is the noun; “affect” is the verb.'],
+  ['Many students find it difficult to adapt [with] a new culture.', 'to', 'The collocation is “adapt to”.'],
+  ['Living in a city is [more] easier than living in the countryside.', '', '“Easier” is already comparative, so “more” is not needed.'],
+  ['There are several reasons why [peoples] move to urban areas.', 'people', '“People” is already plural.'],
+  ['Teachers can give useful [advices] to students who feel anxious.', 'advice', '“Advice” is uncountable.'],
+  ['Some people believe that technology [make] life more stressful.', 'makes', '“Technology” is singular, so the verb needs -s.'],
+  ['[In] the other hand, online courses are cheaper than traditional ones.', 'On', 'The fixed phrase is “on the other hand”.'],
+  ['The chart shows the percentage of people [which] owned a car in 2010.', 'who', 'Use “who” for people.'],
+  ['Unemployment [rised] sharply between 2008 and 2010.', 'rose', '“Rise” is irregular: rise, rose, risen.'],
+  ['Sales remained stable in 2015 and then increased [with] 20 per cent.', 'by', 'Amounts of change take “by”: increased by 20 per cent.'],
+  ['It is important to [rise] awareness of environmental problems.', 'raise', 'You raise something; something rises by itself.'],
+  ['I am looking forward to [hear] from you soon.', 'hearing', '“Look forward to” is followed by the -ing form.'],
+  ['If governments invested more in public transport, fewer people [will] drive to work.', 'would', 'A second conditional needs “would” in the result clause.'],
+  ['Children who grow up in poverty are less likely to [success] at school.', 'succeed', '“Succeed” is the verb; “success” is the noun.'],
+  ['Most [of] people agree that education should be free.', '', 'Say “most people”, or “most of the people” for a specific group.'],
+  ['The population of the city is expected to [raise] to five million by 2050.', 'rise', 'Nothing is raising the population; it rises.'],
+  ['Every [students] should have access to a computer.', 'student', '“Every” is followed by a singular noun.'],
+  ['Tourism brings many benefits, such [like] jobs and investment.', 'as', 'The phrase is “such as”.'],
+  ['Although the cost is high, [but] many people still travel by air.', '', '“Although” already marks the contrast, so “but” is not needed.'],
+  ['Young people today are used to [communicate] through social media.', 'communicating', '“Be used to” is followed by the -ing form.'],
+  ['There has been a significant increase [of] the number of tourists.', 'in', 'A change in something takes “in”: an increase in the number.'],
+  ['The graph illustrates how [much] people visited the museum each year.', 'many', '“People” is countable, so use “how many”.'],
+  ['Working from home can [safe] employees a great deal of time.', 'save', '“Save” is the verb; “safe” is the adjective.'],
+  ['Parents should not let their children [to] play video games all day.', '', '“Let” is followed by the bare verb: let them play.'],
+  ['The [amount] of students studying abroad has doubled.', 'number', 'Use “number” with countable nouns and “amount” with uncountable ones.'],
+  ['Both views have [its] advantages and disadvantages.', 'their', '“Both views” is plural, so the possessive is “their”.'],
+  ['[Fewer] pollution would make cities healthier places to live.', 'Less', '“Pollution” is uncountable, so use “less”.'],
+];
+
+// [stem with ___, correct, three distractors, why]
+const LINK = [
+  ['Electric cars produce no exhaust fumes. ___, the electricity they use is often generated by burning coal.', 'However', ['Therefore', 'Moreover', 'For example'], 'The second sentence limits the first, so a contrast linker is needed.'],
+  ['Rents in the capital have doubled in ten years; ___, many young people have moved to smaller towns.', 'consequently', ['nevertheless', 'in contrast', 'for instance'], 'Moving away is the result of the doubled rents.'],
+  ['___ the museum is free to enter, visitor numbers have fallen.', 'Although', ['Because', 'Unless', 'Despite'], '“Although” joins two contrasting clauses. “Despite” would need a noun or an -ing form.'],
+  ['___ heavy investment, the rail network remains unreliable.', 'Despite', ['Although', 'However', 'Because'], '“Despite” is followed by a noun phrase. “Although” would need a full clause.'],
+  ['Some countries, ___ Finland and Estonia, begin formal schooling at seven.', 'such as', ['as well', 'due to', 'so that'], '“Such as” introduces examples inside a sentence.'],
+  ['Online courses are flexible. ___, they tend to cost far less than campus degrees.', 'Moreover', ['However', 'Otherwise', 'Instead'], 'Lower cost is a second advantage, so an adding linker fits.'],
+  ['Sales rose sharply in the first quarter, ___ they fell in the second.', 'whereas', ['therefore', 'moreover', 'unless'], '“Whereas” contrasts two facts within one sentence.'],
+  ['The flight was cancelled ___ a strike by ground staff.', 'owing to', ['because', 'although', 'so that'], '“Owing to” takes a noun phrase. “Because” would need “of” here.'],
+  ['Cities must invest in public transport; ___, congestion will only get worse.', 'otherwise', ['furthermore', 'similarly', 'as a result'], '“Otherwise” means “if this does not happen”.'],
+  ['Zoos help to protect endangered species. ___, critics argue that animals suffer in captivity.', 'Nevertheless', ['Consequently', 'Likewise', 'In other words'], 'The criticism stands in spite of the benefit just mentioned.'],
+  ['The experiment was repeated three times ___ ensure the results were reliable.', 'in order to', ['so that', 'due to', 'as well as'], '“In order to” is followed by a bare verb and shows purpose.'],
+  ['___ the internet has made information accessible, it has also spread misinformation.', 'While', ['Unless', 'Until', 'Despite'], '“While” concedes one point before a contrasting one.'],
+  ['Tourism creates jobs. ___, in coastal regions it can account for a third of all employment.', 'In fact', ['By contrast', 'Otherwise', 'Even so'], '“In fact” strengthens the previous claim with a more precise detail.'],
+  ['Many people believe that prisons deter crime. ___, others argue that education is more effective.', 'By contrast', ['As a result', 'For instance', 'In other words'], 'The second view opposes the first.'],
+  ['The government raised fuel taxes. ___, fewer people are driving to work.', 'As a result', ['In contrast', 'Nevertheless', 'For example'], 'Fewer drivers is the effect of the tax rise.'],
+  ['Regular exercise strengthens the heart. ___, it has been shown to improve mood.', 'In addition', ['In contrast', 'Otherwise', 'Instead'], 'Better mood is a further benefit of the same thing.'],
+  ['___ unemployment is falling, wages have barely risen.', 'Even though', ['As long as', 'In case', 'So that'], 'Falling unemployment makes flat wages surprising, so a concession is needed.'],
+  ['The city banned cars from the centre ___ reduce air pollution.', 'so as to', ['so that', 'because of', 'in spite of'], '“So as to” is followed by a bare verb and shows purpose.'],
+  ['You will not improve your writing ___ you practise regularly.', 'unless', ['although', 'whereas', 'despite'], '“Unless” means “if you do not”.'],
+  ['This essay has examined both sides. ___, the advantages of remote work outweigh the drawbacks.', 'On balance', ['For instance', 'Meanwhile', 'Otherwise'], '“On balance” introduces a judgement after weighing both sides.'],
+  ['Plastic takes centuries to decompose. ___, it poses a long-term threat to marine life.', 'Therefore', ['Nevertheless', 'By contrast', 'Instead'], 'The threat follows logically from the slow decomposition.'],
+  ['The first proposal is cheap. The second, ___, would cost ten times as much.', 'on the other hand', ['as a result', 'for example', 'in addition'], 'The second proposal is set against the first.'],
+  ['___ rising costs, the festival will not take place this year.', 'Due to', ['Because', 'Despite', 'Although'], '“Due to” takes a noun phrase and gives the cause.'],
+  ['Smartphones are useful tools; ___, they can be a serious distraction in class.', 'nonetheless', ['hence', 'likewise', 'for instance'], 'The drawback is true in spite of the usefulness.'],
+];
+
+// [everyday, academic, conflict tag] — pairs sharing a tag never meet on one board
+const PAIRS = [
+  ['show', 'illustrate', 'show'], ['point out', 'highlight', 'show'], ['get', 'obtain'], ['help', 'assist'], ['enough', 'sufficient'],
+  ['buy', 'purchase'], ['start', 'commence', 'build'], ['set up', 'establish', 'build'], ['build', 'construct', 'build'],
+  ['need', 'require', 'req'], ['ask for', 'request', 'req'], ['use', 'utilise'], ['find out', 'ascertain', 'look'],
+  ['look at', 'examine', 'look'], ['look into', 'investigate', 'look'], ['think about', 'consider', 'look'],
+  ['go down', 'decline', 'down'], ['cut', 'reduce', 'down'], ['go up', 'escalate'], ['make worse', 'exacerbate'], ['make better', 'enhance'],
+  ['lots of', 'numerous', 'qty'], ['big', 'substantial', 'qty'], ['about', 'approximately'], ['rich', 'affluent'], ['poor', 'impoverished'],
+  ['old', 'elderly'], ['ban', 'prohibit', 'stop'], ['stop', 'prevent', 'stop'], ['allow', 'permit'], ['try', 'attempt'], ['tell', 'inform'],
+  ['choose', 'select'], ['keep', 'retain'], ['common', 'widespread', 'wide'], ['worldwide', 'global', 'wide'], ['clear', 'evident'],
+  ['fast', 'rapid'], ['change', 'modify'], ['deal with', 'tackle'], ['give', 'provide'], ['seem', 'appear'], ['job', 'occupation'],
+  ['answer', 'response'], ['chance', 'opportunity'], ['make sure', 'ensure'], ['get rid of', 'eliminate'], ['put off', 'postpone'],
+  ['come up with', 'devise'], ['carry out', 'conduct'], ['wrong', 'inaccurate'], ['whole', 'entire'], ['next to', 'adjacent to'],
+  ['before', 'prior to'], ['harmful', 'detrimental'], ['yearly', 'annual'], ['mainly', 'predominantly'], ['more and more', 'increasingly'],
+  ['guess', 'estimate'], ['hard', 'demanding'], ['end', 'conclude'], ['live in', 'inhabit'], ['very important', 'crucial'],
+  ['disadvantage', 'drawback'], ['lead to', 'result in'], ['happen', 'occur'],
+];
+
+const SURNAMES = ['Hargreave', 'Pemberton', 'Whitlock', 'Ainsworth', 'Maddox', 'Lindqvist', 'Okafor', 'Bracewell', 'Tennyson', 'Garroway',
+  'Hollis', 'Sutcliffe', 'Quigley', 'Rasool', 'Devereux', 'Nakamura', 'Abbott', 'Yilmaz', 'Farrell', 'Winnard', 'Jessop', 'Mallory',
+  'Ellwood', 'Gillespie', 'Pascoe', 'Thackeray', 'Kowalski', 'Byrne', 'Fenwick', 'Ossett'];
+const FORMS = ['Kayak lesson booking', 'Library card application', 'Hotel reservation', 'Evening class enrolment', 'Bicycle hire form', 'Dental surgery registration'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+const ORD = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh', 'twenty-eighth'];
+const words = n => n < 20 ? ONES[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? '-' + ONES[n % 10] : '') : ONES[Math.floor(n / 100)] + ' hundred' + (n % 100 ? ' and ' + words(n % 100) : '');
+const spell = w => { const L = w.toUpperCase().split(''), out = []; for (let i = 0; i < L.length; i++) { if (L[i + 1] === L[i]) { out.push('double ' + L[i]); i++; } else out.push(L[i]); } return out.join(', '); };
+const sayDigits = ds => { const out = []; for (let i = 0; i < ds.length; i++) { const w = ds[i] === 0 ? 'oh' : ONES[ds[i]]; if (ds[i + 1] === ds[i]) { out.push('double ' + w); i++; } else out.push(w); } return out.join(' '); };
+
+const LISTEN = {
+  name() { const nm = pick(SURNAMES);
+    return { kind: 'name', field: 'Surname', say: `Could I take your surname, please? Yes, it's ${nm}. That's ${spell(nm)}.`, show: nm, key: nm.toLowerCase(),
+      hint: 'Write the surname.', tip: 'When a name is spelt out, write the letters as you hear them and listen for “double”.' }; },
+  phone() { const d = [0, 7]; for (let i = 0; i < 9; i++) d.push(rand(10)); const j = 3 + rand(7); d[j + 1] = d[j];
+    const g = [d.slice(0, 5), d.slice(5, 8), d.slice(8)];
+    return { kind: 'phone', field: 'Contact number', say: `And a contact number? Sure, it's ${g.map(sayDigits).join(', ')}.`, show: g.map(x => x.join('')).join(' '), key: d.join(''),
+      hint: 'Write the number in figures.', tip: 'Speakers say “oh” for zero and “double” for a repeated digit.' }; },
+  postcode() { const area = pick(['BS', 'M', 'EH', 'LS', 'NR', 'CB', 'OX', 'YO', 'NE', 'G', 'CF', 'PL']), dist = 1 + rand(19), inn = 1 + rand(9);
+    const AB = 'ABDEFGHJLNPQRSTUWXYZ', l1 = AB[rand(AB.length)], l2 = AB[rand(AB.length)];
+    return { kind: 'postcode', field: 'Postcode', say: `What's the postcode there? It's ${area.split('').join(', ')}, ${words(dist)}. ${words(inn)}, ${l1}, ${l2}.`,
+      show: `${area}${dist} ${inn}${l1}${l2}`, key: `${area}${dist}${inn}${l1}${l2}`, hint: 'Write the postcode, letters and figures.', tip: 'Postcodes mix letters and numbers. Write each one as it is said.' }; },
+  date() { const d = 1 + rand(28), m = rand(12);
+    return { kind: 'date', field: 'Date of arrival', say: `When would you like to come? The ${ORD[d]} of ${MONTHS[m]}, if that's possible.`, show: `${d} ${MONTHS[m]}`, key: `${d}-${m + 1}`,
+      hint: 'Write the date, for example 5 June.', tip: 'Dates are said as ordinals: “the twenty-third of March” is 23 March.' }; },
+  price() { const p = 4 + rand(180), c = pick([50, 99, 75, 25, 80, 40, 95, 20]);
+    return { kind: 'price', field: 'Total cost (£)', say: `So with the deposit, that comes to ${words(p)} pounds ${words(c)}.`, show: `£${p}.${c}`, key: (p + c / 100).toFixed(2),
+      hint: 'Write the amount in figures, for example 12.50.', tip: 'Pence follow the pounds with no extra word: “forty pounds eighty” is £40.80.' }; },
+  time() { const h = 1 + rand(12), m = pick([15, 30, 45, 10, 20, 50, 40, 5, 55, 25, 35]), nx = h % 12 + 1;
+    const ph = m === 15 ? `quarter past ${ONES[h]}` : m === 30 ? `half past ${ONES[h]}` : m === 45 ? `quarter to ${ONES[nx]}` : m < 30 ? `${words(m)} past ${ONES[h]}` : `${words(60 - m)} to ${ONES[nx]}`;
+    return { kind: 'time', field: 'Departure time', say: `The coach leaves at ${ph}, so please don't be late.`, show: `${h}.${String(m).padStart(2, '0')}`, key: `${h}:${String(m).padStart(2, '0')}`,
+      hint: 'Write the time in figures, for example 7.15.', tip: '“Past” counts on from the hour named. “To” counts back from it, so quarter to nine is 8.45.' }; },
+  number() { const t = 3 + rand(7), n = (pick([0, 0, 100, 200])) + (rand(2) ? 10 + t : t * 10), room = rand(2);
+    return { kind: 'number', field: room ? 'Room number' : 'Places left', say: room ? `You'll be in room ${words(n)}, on the left.` : `We still have ${words(n)} places left on that course.`, show: String(n), key: String(n),
+      hint: 'Write the number in figures.', tip: 'Thirteen or thirty? The stress falls on “-teen” but never on “-ty”.' }; },
+};
+
+/* ---- trend graphs (Writing Task 1) ---- */
+const VERBS = {
+  su: ['rose sharply', 'surged', 'soared', 'climbed steeply'], gu: ['rose gradually', 'increased slightly', 'edged up', 'grew slowly'],
+  fl: ['levelled off', 'plateaued', 'remained stable', 'held steady'], fl0: ['remained stable', 'held steady', 'stayed constant'],
+  gd: ['declined gradually', 'fell slightly', 'edged down', 'decreased modestly'], sd: ['plummeted', 'fell sharply', 'plunged', 'dropped dramatically'],
+  fx: ['fluctuated', 'fluctuated considerably'],
+};
+const GLOSS = { su: 'a steep rise', gu: 'a gentle rise', fl: 'no change', gd: 'a gentle fall', sd: 'a steep fall', fx: 'repeated rises and falls' };
+const CONFUSE = { su: ['gu', 'sd'], gu: ['su', 'gd', 'fl'], fl: ['fx', 'gu', 'gd'], gd: ['sd', 'gu', 'fl'], sd: ['gd', 'su'], fx: ['fl', 'su', 'sd'] };
+const DELTA = { su: 34, gu: 10, fl: 0, gd: -10, sd: -34 };
+const SUBJECTS = ['Visitor numbers', 'Sales of e-bikes', 'Unemployment', 'The price of coffee', 'Rail passenger numbers', 'Library membership', 'Coal consumption', 'Online orders'];
+const okSeq = s => s[0] !== s[1] && s[1] !== s[2];
+function seqPoints(seq) {
+  let v = 0; const pts = [[0, 0]];
+  seq.forEach((s, i) => {
+    if (s === 'fx') [[.25, 13], [.5, -9], [.75, 12], [1, 0]].forEach(([dx, dv]) => pts.push([i + dx, v + dv]));
+    else { v += DELTA[s]; pts.push([i + 1, v]); }
+  });
+  const vs = pts.map(p => p[1]), mn = Math.min(...vs), mx = Math.max(...vs), mid = (mn + mx) / 2, k = mx - mn > 84 ? 84 / (mx - mn) : 1;
+  return pts.map(([x, y]) => [x, 50 + (y - mid) * k]);
+}
+function chartSVG(seq, years, big) {
+  const X = x => 16 + x / 3 * 168, Y = v => 90 - v / 100 * 80, pts = seqPoints(seq);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
+  const grid = [0, 50, 100].map(v => `<path class="grid" d="M16 ${Y(v)}H184"/>`).join('');
+  const labels = years.map((y, i) => (big || i === 0 || i === 3) ? `<text x="${X(i)}" y="106" text-anchor="middle">${y}</text>` : '').join('');
+  const dots = pts.filter(p => Number.isInteger(p[0])).map(p => `<circle class="dot" cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2.4"/>`).join('');
+  return `<svg class="chart" viewBox="0 0 200 112" aria-hidden="true">${grid}<path class="ln" d="${d}"/>${dots}${labels}</svg>`;
+}
+function makeChart() {
+  const types = ['su', 'gu', 'fl', 'gd', 'sd', 'fx'];
+  let base; do { base = [pick(types), pick(types), pick(types)]; } while (!okSeq(base));
+  const seqs = [base], seen = new Set([base.join()]);
+  let guard = 0;
+  while (seqs.length < 4 && guard++ < 400) {
+    const s = base.slice(), i = rand(3); s[i] = pick(CONFUSE[s[i]]);
+    if (rand(3) === 0) { const j = (i + 1 + rand(2)) % 3; s[j] = pick(CONFUSE[s[j]]); }
+    if (okSeq(s) && !seen.has(s.join())) { seen.add(s.join()); seqs.push(s); }
+  }
+  const start = 1990 + 5 * rand(5), gap = pick([5, 10]), years = [0, 1, 2, 3].map(i => start + i * gap), subj = pick(SUBJECTS);
+  const order = shuffle(seqs.map((_, i) => i));
+  const built = order.map(i => { const s = seqs[i], v = s.map((t, k) => pick(VERBS[t === 'fl' && k === 0 ? 'fl0' : t]));
+    return { seq: s, verbs: v, text: `${subj} ${v[0]} between ${years[0]} and ${years[1]}, ${v[1]} until ${years[2]}, and then ${v[2]}.` }; });
+  return { type: 'chart', variant: rand(2) ? 'graph' : 'text', years, opts: built, answer: order.indexOf(0) };
+}
+
+/* ---- question makers ---- */
+const tfngQ = (pi, k) => { const P = TFNG[pi], S = P.s[k]; return { type: 'tfng', id: `t${pi}.${k}`, p: P.p, a: S[0], s: S[1], why: S[2] }; };
+const proofQ = i => { const [src, fix, why] = PROOF[i], tokens = src.split(' '), wrong = tokens.findIndex(t => t[0] === '[');
+  tokens[wrong] = tokens[wrong].replace(/[\[\]]/g, ''); return { type: 'proof', id: 'p' + i, tokens, wrong, fix, why }; };
+const linkQ = i => { const [stem, right, wrongs, why] = LINK[i], options = shuffle([right, ...wrongs]);
+  return { type: 'mcq', id: 'l' + i, kicker: 'Choose the linker that fits', stem, options, answer: options.indexOf(right), why }; };
+const vocabQ = plain => { const p = PAIRS.find(x => x[0] === plain); if (!p) return null;
+  const others = sample(PAIRS.filter(x => x !== p && (!p[2] || x[2] !== p[2])), 3).map(x => x[1]), options = shuffle([p[1], ...others]);
+  return { type: 'mcq', id: 'w:' + plain, kicker: 'Choose the academic paraphrase', stem: `“${plain}”`, options, answer: options.indexOf(p[1]), why: `${plain} → ${p[1]}` }; };
+
+function make(key, n) {
+  if (key === 'listen') { const kinds = shuffle(Object.keys(LISTEN)); return Array.from({ length: n }, (_, i) => Object.assign({ type: 'listen', form: pick(FORMS) }, LISTEN[kinds[i % kinds.length]]())); }
+  if (key === 'tfng') { const want = shuffle(Array.from({ length: n }, (_, i) => i % 3)); return sample(TFNG.map((_, i) => i), n).map((pi, i) => tfngQ(pi, want[i])); }
+  if (key === 'chart') return Array.from({ length: n }, makeChart);
+  if (key === 'proof') return sample(PROOF.map((_, i) => i), n).map(proofQ);
+  if (key === 'link') return sample(LINK.map((_, i) => i), n).map(linkQ);
+  if (key === 'pairs') { const used = new Set(), boards = [];
+    for (let b = 0; b < n / 5; b++) { const tags = new Set(), chosen = [];
+      for (const p of shuffle(PAIRS)) { if (chosen.length === 5) break; if (used.has(p[0]) || (p[2] && tags.has(p[2]))) continue; chosen.push(p); used.add(p[0]); if (p[2]) tags.add(p[2]); }
+      boards.push({ type: 'pairs', pairs: chosen.map(p => [p[0], p[1]]), order: shuffle([0, 1, 2, 3, 4]) }); }
+    return boards; }
+  return [];
+}
+function reviewQs() {
+  return shuffle(save.missed).slice(0, 10).map(id => {
+    if (id[0] === 't') { const [pi, k] = id.slice(1).split('.').map(Number); return TFNG[pi] && TFNG[pi].s[k] ? tfngQ(pi, k) : null; }
+    if (id[0] === 'p') return PROOF[+id.slice(1)] ? proofQ(+id.slice(1)) : null;
+    if (id[0] === 'l') return LINK[+id.slice(1)] ? linkQ(+id.slice(1)) : null;
+    if (id[0] === 'w') return vocabQ(id.slice(2));
+    return null;
+  }).filter(Boolean);
+}
+
+/* ---- answers and bands ---- */
+function normAnswer(kind, s) {
+  s = String(s).trim();
+  if (kind === 'name') return s.toLowerCase().replace(/[^a-z]/g, '');
+  if (kind === 'phone' || kind === 'number') return s.replace(/\D/g, '');
+  if (kind === 'postcode') return s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (kind === 'price') { const m = s.replace(',', '.').match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]).toFixed(2) : ''; }
+  if (kind === 'time') { const m = s.match(/(\d{1,2})\D*(\d{2})/); return m ? (+m[1]) + ':' + m[2] : ''; }
+  if (kind === 'date') { const low = s.toLowerCase(), mi = MONTHS.findIndex(m => low.includes(m.slice(0, 3).toLowerCase())), nums = (s.match(/\d+/g) || []).map(Number);
+    if (mi >= 0 && nums.length) return nums[0] + '-' + (mi + 1); if (nums.length >= 2) return nums[0] + '-' + nums[1]; return ''; }
+  return s;
+}
+// IELTS Listening raw-score conversion (out of 40), applied to a scaled score
+const BAND_TABLE = [[39, 9], [37, 8.5], [35, 8], [32, 7.5], [30, 7], [26, 6.5], [23, 6], [18, 5.5], [16, 5], [13, 4.5], [10, 4], [8, 3.5], [6, 3], [4, 2.5], [2, 2], [1, 1], [0, 0]];
+const toBand = (raw, total) => { const s = Math.round(raw * 40 / total); return BAND_TABLE.find(r => s >= r[0])[1]; };
+const fmtBand = b => b.toFixed(1);
+const petalText = b => (Math.floor(b) || (b % 1 ? '' : '0')) + (b % 1 ? '½' : '') + (b === 1 ? ' petal' : ' petals');
+const DESCRIPTOR = ['Did not attempt', 'Non-user', 'Intermittent user', 'Extremely limited user', 'Limited user', 'Modest user', 'Competent user', 'Good user', 'Very good user', 'Expert user'];
+
+/* ================= saved progress (this browser only) ================= */
+const KEY = 'nine-petals.v1';
+let save = { sittings: 0, bestBand: null, best: {}, missed: [], timed: true, last: null };
+try { Object.assign(save, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
+if (!Array.isArray(save.missed)) save.missed = [];
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} };
+
+/* ================= the plate ================= */
+const Plate = (() => {
+  const cv = $('#plate'), ctx = cv.getContext('2d');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let spec = null, bg = null, bgKey = '', raf = 0, grown = {}, bloomAt = -1;
+  const rng = seed => { let a = seed | 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+  const bez = (a, b, c, t) => { const u = 1 - t; return [u * u * a[0] + 2 * u * t * b[0] + t * t * c[0], u * u * a[1] + 2 * u * t * b[1] + t * t * c[1]]; };
+  const tan = (a, b, c, t) => { const x = 2 * (1 - t) * (b[0] - a[0]) + 2 * t * (c[0] - b[0]), y = 2 * (1 - t) * (b[1] - a[1]) + 2 * t * (c[1] - b[1]), l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+  const rot = (v, deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [v[0] * c - v[1] * s, v[0] * s + v[1] * c]; };
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const leafT = (k, L) => 0.2 + 0.68 * (L <= 1 ? 0.5 : k / (L - 1));
+
+  function buildBg(w, h, dpr, seed) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'), rnd = rng(seed), m = 9 * dpr, step = 8 * dpr, pts = [];
+    // hand-brushed emulsion: nearly straight top and bottom, ragged ends where the brush lifted
+    for (let x = m; x <= w - m; x += step) pts.push([x, m + (rnd() - .5) * 3 * dpr]);
+    for (let y = m; y <= h - m; y += step) pts.push([w - m + (rnd() - .5) * 10 * dpr, y]);
+    for (let x = w - m; x >= m; x -= step) pts.push([x, h - m + (rnd() - .5) * 3 * dpr]);
+    for (let y = h - m; y >= m; y -= step) pts.push([m + (rnd() - .5) * 10 * dpr, y]);
+    g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath();
+    const grad = g.createRadialGradient(w * .5, h * .42, 0, w * .5, h * .5, Math.max(w, h) * .78);
+    grad.addColorStop(0, tok('--plate-a')); grad.addColorStop(.6, tok('--plate-b')); grad.addColorStop(1, tok('--plate-c'));
+    g.fillStyle = grad; g.fill(); g.save(); g.clip();
+    for (let i = 0; i < 70; i++) { const y = rnd() * h; g.strokeStyle = `rgba(${rnd() < .5 ? '255,255,255' : '4,22,46'},${0.015 + rnd() * 0.04})`; g.lineWidth = (1 + rnd() * 6) * dpr;
+      g.beginPath(); g.moveTo(0, y); g.lineTo(w, y + (rnd() - .5) * 8 * dpr); g.stroke(); }
+    const specks = w * h / (700 * dpr * dpr);
+    for (let i = 0; i < specks; i++) { g.fillStyle = `rgba(255,255,255,${rnd() * 0.07})`; g.fillRect(rnd() * w, rnd() * h, dpr, dpr); }
+    g.restore(); return c;
+  }
+
+  function draw(now) {
+    raf = 0; if (!spec) return;
+    const r = cv.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const key = w + 'x' + h + ':' + spec.seed; if (key !== bgKey) { bg = buildBg(w, h, dpr, spec.seed); bgKey = key; }
+    ctx.clearRect(0, 0, w, h); ctx.drawImage(bg, 0, 0);
+    const print = tok('--print'), gold = tok('--gold');
+    const pad = 24 * dpr, iw = w - 2 * pad, ih = h - 2 * pad, cx = w / 2, baseY = h - pad;
+    const n = spec.stems.length, rnd = rng(spec.seed * 7 + 3), spread = Math.min(0.45, 0.15 * n), wide = w / h > 1.7, topBase = spec.bloom ? (wide ? 0.3 : 0.37) : 0.1;
+    let busy = false;
+    const glow = on => { ctx.shadowColor = on ? 'rgba(232,242,249,.55)' : 'transparent'; ctx.shadowBlur = on ? 4 * dpr : 0; };
+    const leaf = (P, D, len, alpha) => { const N = [-D[1], D[0]], mid = [P[0] + D[0] * len * .5, P[1] + D[1] * len * .5], tip = [P[0] + D[0] * len, P[1] + D[1] * len], wd = len * .2;
+      ctx.globalAlpha = alpha; ctx.fillStyle = print; ctx.beginPath(); ctx.moveTo(P[0], P[1]);
+      ctx.quadraticCurveTo(mid[0] + N[0] * wd, mid[1] + N[1] * wd, tip[0], tip[1]); ctx.quadraticCurveTo(mid[0] - N[0] * wd, mid[1] - N[1] * wd, P[0], P[1]); ctx.fill(); };
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; glow(true);
+
+    for (let s = 0; s < n; s++) {
+      const u = n === 1 ? 0 : (s / (n - 1)) * 2 - 1, jit = (rnd() - .5) * 0.05;
+      // a tall plate fans the stems from one root; a wide strip stands them in a row
+      const reach = wide ? iw * 0.44 * (spread / 0.45) : Math.min(iw * spread, ih * 0.55);
+      const top = [cx + u * reach, pad + ih * (topBase + Math.abs(u) * (wide ? 0.05 : 0.14) + jit)];
+      const base = [cx + u * (wide ? reach * 0.84 : Math.min(iw * 0.05, 12 * dpr)), baseY];
+      const ctrl = [base[0] + (top[0] - base[0]) * 0.12, baseY - (baseY - top[1]) * 0.62];
+      const marks = spec.stems[s], L = spec.lens[s], a = marks.length, gk = s + ':' + (a - 1);
+      let p = 1; if (grown[gk] != null) { p = Math.min(1, (now - grown[gk]) / 640); if (p < 1) busy = true; else delete grown[gk]; }
+      const e = ease(p), endOf = c => c >= L ? 1 : c === 0 ? 0.07 : leafT(c - 1, L) + 0.05;
+      const tEnd = a === 0 ? endOf(0) : endOf(a - 1) + (endOf(a) - endOf(a - 1)) * e;
+      ctx.strokeStyle = print; ctx.globalAlpha = .9; ctx.lineWidth = 1.5 * dpr; ctx.beginPath();
+      const steps = Math.max(6, Math.round(30 * tEnd));
+      for (let i = 0; i <= steps; i++) { const q = bez(base, ctrl, top, tEnd * i / steps); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }
+      ctx.stroke();
+      const unit = Math.max(8 * dpr, Math.min(Math.hypot(top[0] - base[0], top[1] - base[1]) * 0.17, 44 * dpr));
+      for (let k = 0; k < a; k++) {
+        const t = leafT(k, L), P = bez(base, ctrl, top, t), T = tan(base, ctrl, top, t), sc = k === a - 1 ? e : 1, m = marks[k];
+        if (m.ok) { const len = unit * (0.72 + 0.5 * m.speed) * (1 - 0.3 * k / L) * sc; leaf(P, rot(T, 52), len, .84); leaf(P, rot(T, -52), len, .84); }
+        else { glow(false); ctx.globalAlpha = sc; ctx.strokeStyle = gold; ctx.lineWidth = 1.3 * dpr; ctx.beginPath(); ctx.arc(P[0], P[1], 2.8 * dpr, 0, 6.2832); ctx.stroke(); glow(true); }
+      }
+      if (a >= L && L > 0) {
+        const T = tan(base, ctrl, top, 1);
+        if (marks.every(m => m.ok)) { // a full stem carries a seed head
+          for (let i = -2; i <= 2; i++) { const D = rot(T, i * 30), q = [top[0] + D[0] * unit * .42 * e, top[1] + D[1] * unit * .42 * e];
+            ctx.globalAlpha = .8; ctx.strokeStyle = print; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+            ctx.globalAlpha = .95; ctx.fillStyle = print; ctx.beginPath(); ctx.arc(q[0], q[1], 1.9 * dpr, 0, 6.2832); ctx.fill(); }
+        } else leaf(top, T, unit * .55 * e, .84);
+      }
+    }
+
+    if (spec.bloom) {
+      const C = [cx + iw * 0.012, pad + ih * 0.17], R = Math.min(iw * 0.17, ih * 0.15), base = [cx, baseY], ctrl = [cx - iw * 0.035, baseY - (baseY - C[1]) * 0.5];
+      ctx.globalAlpha = .9; ctx.strokeStyle = print; ctx.lineWidth = 1.7 * dpr; ctx.beginPath(); ctx.moveTo(base[0], base[1]); ctx.quadraticCurveTo(ctrl[0], ctrl[1], C[0], C[1]); ctx.stroke();
+      [[.42, 58], [.63, -58]].forEach(([t, deg]) => leaf(bez(base, ctrl, C, t), rot(tan(base, ctrl, C, t), deg), R * .5, .8));
+      if (spec.band == null) {
+        ctx.globalAlpha = .9; ctx.fillStyle = print; ctx.beginPath(); ctx.ellipse(C[0], C[1] - R * .16, R * .15, R * .3, 0, 0, 6.2832); ctx.fill();
+        leaf(C, rot([0, -1], 40), R * .3, .8); leaf(C, rot([0, -1], -40), R * .3, .8);
+      } else {
+        const full = Math.floor(spec.band), half = spec.band % 1 ? 1 : 0;
+        for (let j = 0; j < 9; j++) {
+          let pj = 1; if (bloomAt >= 0) { pj = Math.max(0, Math.min(1, (now - bloomAt - 400 - j * 130) / 700)); if (pj < 1) busy = true; }
+          const sc = ease(pj), kind = j < full ? 1 : (j === full && half) ? .58 : 0, Lp = R * (kind || 1), wd = Lp * .21;
+          if (sc <= 0) continue;
+          ctx.save(); ctx.translate(C[0], C[1]); ctx.rotate(j * 40 * Math.PI / 180); ctx.scale(sc, sc);
+          ctx.beginPath(); ctx.moveTo(0, -Lp * .14); ctx.bezierCurveTo(wd, -Lp * .4, wd * .85, -Lp * .86, 0, -Lp); ctx.bezierCurveTo(-wd * .85, -Lp * .86, -wd, -Lp * .4, 0, -Lp * .14);
+          if (kind) { ctx.globalAlpha = .86; ctx.fillStyle = print; ctx.fill(); }
+          else { glow(false); ctx.globalAlpha = .3; ctx.strokeStyle = print; ctx.lineWidth = dpr; ctx.stroke(); glow(true); }
+          ctx.restore();
+        }
+        if (bloomAt >= 0 && !busy) bloomAt = -1;
+        glow(false); ctx.globalAlpha = 1; ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(C[0], C[1], Math.max(2 * dpr, R * .11), 0, 6.2832); ctx.fill(); glow(true);
+      }
+    }
+    ctx.globalAlpha = 1; glow(false);
+    if (busy) kick();
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(draw); };
+  if ('ResizeObserver' in window) new ResizeObserver(kick).observe(cv); else addEventListener('resize', kick);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(kick);
+  return {
+    set(s) { spec = s; grown = {}; bloomAt = -1; kick(); },
+    grow(s) { if (!still && spec) grown[s + ':' + (spec.stems[s].length - 1)] = performance.now(); kick(); },
+    bloom(band) { if (spec) { spec.band = band; bloomAt = still ? -1 : performance.now(); } kick(); },
+    redraw: kick,
+  };
+})();
+
+const EXAMPLE = { seed: 2026, bloom: true, band: 7.5, lens: [5, 5, 5, 5, 5, 5],
+  stems: ['11111', '11011', '11110', '10111', '11101', '01101'].map((row, s) => row.split('').map((c, k) => ({ ok: c === '1', speed: 0.25 + ((k * 37 + s * 17) % 10) / 14 }))) };
+function plateLabel(a, b) { const el = $('#plateLabel'); el.children[0].textContent = a; el.children[1].textContent = b || ''; $('#plate').setAttribute('aria-label', 'Cyanotype specimen. ' + a + '. ' + (b || '')); }
+
+/* ================= speech ================= */
+const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+function voice() { try { const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); return vs.find(v => /en[-_]GB/i.test(v.lang)) || vs[0] || null; } catch (e) { return null; } }
+function speak(text) { if (!canSpeak) return; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text), v = voice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-GB'; u.rate = 0.88; speechSynthesis.speak(u); } catch (e) {} }
+function hush() { if (canSpeak) { try { speechSynthesis.cancel(); } catch (e) {} } }
+if (canSpeak) { try { speechSynthesis.getVoices(); } catch (e) {} }
+
+/* ================= timer ================= */
+const Timer = {
+  t0: 0, dur: 0, raf: 0, on: false,
+  start(sec, onEnd) {
+    this.stop(); const bar = $('.sunbar'); if (bar) bar.hidden = !save.timed;
+    if (!save.timed) { this.dur = 0; return; }
+    this.t0 = performance.now(); this.dur = sec * 1000; this.on = true;
+    const tick = () => { if (!this.on) return; const left = this.left(), b = $('#sun'); if (b) b.style.transform = `scaleX(${left})`;
+      if (left <= 0) { this.on = false; onEnd(); return; } this.raf = requestAnimationFrame(tick); };
+    tick();
+  },
+  idle() { this.stop(); this.dur = 0; const bar = $('.sunbar'), b = $('#sun'); if (bar) bar.hidden = !save.timed; if (b) b.style.transform = 'scaleX(1)'; },
+  stop() { this.on = false; cancelAnimationFrame(this.raf); },
+  left() { return save.timed && this.dur ? Math.max(0, 1 - (performance.now() - this.t0) / this.dur) : 0.5; },
+};
+
+/* ================= game state and screens ================= */
+const desk = $('#desk'), panel = $('#panel');
+let run = null, handlers = {}, shownAt = 0;
+const stage = () => $('#stage');
+const today = () => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+panel.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (t && panel.contains(t) && !t.disabled && handlers[t.dataset.act]) handlers[t.dataset.act](t); });
+panel.addEventListener('change', e => { if (e.target.id === 'timedToggle') { save.timed = e.target.checked; persist(); } });
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  const k = e.key.toUpperCase(); if (k.length !== 1) return;
+  const b = $$('.opt:not(:disabled)', panel).find(o => { const kb = $('kbd', o); return kb && kb.textContent === k; });
+  if (b) { e.preventDefault(); b.click(); }
+});
+
+function screen(name, html) { desk.dataset.screen = name; panel.innerHTML = html; Plate.redraw(); window.scrollTo(0, 0); }
+
+function home() {
+  run = null; Timer.stop(); hush();
+  const last = save.last;
+  if (last) { Plate.set({ seed: last.seed, stems: last.stems, lens: last.lens, bloom: true, band: last.band }); plateLabel(`Specimen No. ${pad3(last.no)}`, `${last.date} · band ${fmtBand(last.band)}`); }
+  else { Plate.set(EXAMPLE); plateLabel('Example specimen', 'Band 7.5 · yours will replace it'); }
+  const rows = PAPERS.map((p, i) => `<button class="row" data-act="practice" data-k="${p.key}"><span class="num">${ROMAN[i]}</span><span class="what"><b>${p.skill}</b> <span>· ${p.name}</span></span><span class="best">${save.best[p.key] != null ? 'best ' + save.best[p.key] + '%' : 'not tried'}</span></button>`).join('');
+  const record = save.sittings ? `Best band ${fmtBand(save.bestBand)} · ${save.sittings} ${save.sittings === 1 ? 'sitting' : 'sittings'}` : 'No sittings yet';
+  screen('home', `<div class="home">
+    <h1>Every right answer grows <em>a leaf.</em></h1>
+    <p class="lede">A sitting is six short IELTS papers, thirty questions in all. When it ends, the flower opens with one petal for each band you earned. Nine is a full bloom.</p>
+    <div class="begin">
+      <button class="btn" data-act="sitting">Begin a sitting</button>
+      <span class="mono">30 questions · about 8 minutes</span>
+    </div>
+    <div class="papers-list">
+      <h2 class="kicker">Or practise one paper · 10 questions</h2>
+      <div class="rows">${rows}</div>
+    </div>
+    <div class="home-foot">
+      <label class="switch" for="timedToggle"><input type="checkbox" id="timedToggle"${save.timed ? ' checked' : ''}> Timed questions</label>
+      ${save.missed.length ? `<button class="linkish" data-act="review">Review your mistakes (${save.missed.length})</button>` : ''}
+      <span class="mono">${record}</span>
+    </div>
+  </div>`);
+  handlers = { sitting: () => startRun('sitting'), practice: b => startRun('practice', b.dataset.k), review: () => startRun('review') };
+}
+
+function startRun(mode, key) {
+  let sections = [];
+  if (mode === 'sitting') sections = PAPERS.map(p => ({ paper: p.key, qs: make(p.key, 5), len: 5 }));
+  else if (mode === 'practice') { const qs = make(key, 10); sections = key === 'pairs' ? qs.map(b => ({ paper: key, qs: [b], len: 5 })) : [0, 1].map(i => ({ paper: key, qs: qs.slice(i * 5, i * 5 + 5), len: 5 })); }
+  else { const qs = reviewQs(); if (!qs.length) { save.missed = []; persist(); return home(); } for (let i = 0; i < qs.length; i += 5) { const part = qs.slice(i, i + 5); sections.push({ paper: 'review', qs: part, len: part.length }); } }
+  run = { mode, key: key || null, sections, si: 0, qi: 0, marks: sections.map(() => []), log: [], seed: 1 + rand(1e6), phase: 'intro' };
+  enterRun();
+}
+function enterRun() {
+  Plate.set({ seed: run.seed, stems: run.marks, lens: run.sections.map(s => s.len), bloom: run.mode === 'sitting', band: null });
+  screen('play', `<div class="play">
+    <div class="play-head"><div class="ph-title" id="phTitle"></div><div class="ph-right"><div class="pips" id="pips"></div><span id="leaveBox"><button class="linkish" data-act="leave">Leave</button></span></div></div>
+    <div class="sunbar"><i id="sun"></i></div>
+    <div id="stage"></div>
+  </div>`);
+  showIntro();
+}
+const total = () => run.sections.reduce((n, s) => n + s.len, 0);
+const answered = () => run.marks.reduce((n, m) => n + m.length, 0);
+function pipsHTML(marks, len, live) { let h = '<span>'; for (let k = 0; k < len; k++) h += `<i class="${marks[k] ? (marks[k].ok ? 'ok' : 'no') : (live && k === marks.length ? 'now' : '')}"></i>`; return h + '</span>'; }
+function head() {
+  const sec = run.sections[run.si], P = paperOf(sec.paper);
+  const lead = run.mode === 'sitting' ? `Paper ${ROMAN[run.si]} of VI` : run.mode === 'practice' ? 'Practice' : 'Review';
+  $('#phTitle').innerHTML = `<span class="mono">${lead}</span><b>${esc(run.mode === 'review' ? 'Your mistakes' : P.skill)}</b>`;
+  const el = $('#pips'); el.innerHTML = run.sections.map((s, i) => pipsHTML(run.marks[i], s.len, i === run.si)).join('');
+  el.setAttribute('aria-label', `${answered()} of ${total()} answered`);
+  plateLabel(run.mode === 'sitting' ? 'Sitting in progress' : run.mode === 'practice' ? 'Practice' : 'Review', `Leaf ${Math.min(answered() + 1, total())} of ${total()}`);
+}
+const baseHandlers = {
+  leave() { $('#leaveBox').innerHTML = `<span class="confirm">Leave and lose this ${run.mode === 'sitting' ? 'sitting' : 'round'}? <button class="linkish" data-act="leaveYes">Leave</button><button class="linkish" data-act="leaveNo">Stay</button></span>`; },
+  leaveNo() { $('#leaveBox').innerHTML = '<button class="linkish" data-act="leave">Leave</button>'; },
+  leaveYes() { home(); },
+  next() { if (performance.now() - shownAt < 350) return; next(); },
+};
+
+function showIntro() {
+  const sec = run.sections[run.si], P = paperOf(sec.paper), prev = run.sections[run.si - 1];
+  if (prev && prev.paper === sec.paper) return showQuestion();
+  run.phase = 'intro'; head(); Timer.idle();
+  const count = run.mode === 'sitting' ? `${sec.len} questions` : `${total()} questions`;
+  stage().innerHTML = `<div class="intro">
+    <p class="kicker">${esc(P.skill)} · ${count}${save.timed ? ' · timed' : ''}</p>
+    <h2>${esc(P.name)}</h2>
+    <p>${esc(P.how)}</p>
+    <p class="tip">${esc(P.tip)}</p>
+    <button class="btn" data-act="go">${run.si === 0 ? 'Start' : 'Start this paper'}</button>
+  </div>`;
+  handlers = Object.assign({}, baseHandlers, { go: showQuestion });
+  window.scrollTo(0, 0);
+}
+function showQuestion() {
+  const q = run.sections[run.si].qs[run.qi];
+  run.phase = 'question'; head(); handlers = Object.assign({}, baseHandlers);
+  RENDER[q.type](q);
+}
+const lock = () => { if (run.phase !== 'question') return true; run.phase = 'feedback'; return false; };
+
+function mark(ok, id) {
+  run.marks[run.si].push({ ok, speed: Timer.left() }); Plate.grow(run.si); head();
+  if (id) { const i = save.missed.indexOf(id); if (ok && i >= 0) save.missed.splice(i, 1); if (!ok && i < 0) { save.missed.push(id); if (save.missed.length > 40) save.missed.shift(); } persist(); }
+}
+function nextLabel() {
+  const sec = run.sections[run.si], lastQ = run.qi >= sec.qs.length - 1, lastS = run.si >= run.sections.length - 1;
+  return lastQ && lastS ? (run.mode === 'sitting' ? 'Open the flower' : 'See the result') : lastQ && run.mode === 'sitting' ? 'Next paper' : 'Next';
+}
+function feedback(ok, headHTML, whyHTML) {
+  Timer.stop(); shownAt = performance.now();
+  const fb = document.createElement('div'); fb.className = 'fb ' + (ok ? 'is-good' : 'is-bad'); fb.setAttribute('role', 'status');
+  fb.innerHTML = `<p class="fb-head">${headHTML}</p>${whyHTML || ''}<button class="btn" data-act="next">${nextLabel()}</button>`;
+  stage().appendChild(fb);
+  setTimeout(() => { const b = $('.fb .btn', panel); if (b && run && run.phase === 'feedback') { b.focus({ preventScroll: true }); fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }, 260);
+}
+function settle(ok, o) { mark(ok, o.id); run.log.push({ ok, title: o.title, answer: o.answer, why: o.why || '' }); feedback(ok, o.head, o.why ? `<p>${o.why}</p>` : ''); }
+function paint(sel, chosen, right) { $$(sel, panel).forEach(b => { b.disabled = true; if (b.dataset.v === String(right)) b.classList.add('is-right'); else if (chosen != null && b.dataset.v === String(chosen)) b.classList.add('is-wrong'); }); }
+function next() {
+  hush(); const sec = run.sections[run.si];
+  if (++run.qi >= sec.qs.length) { run.qi = 0; if (++run.si >= run.sections.length) return finish(); return showIntro(); }
+  showQuestion(); window.scrollTo(0, 0);
+}
+
+/* ================= question renderers ================= */
+const ICON_PLAY = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>';
+const RENDER = {
+  tfng(q) {
+    const NAME = { T: 'True', F: 'False', NG: 'Not Given' };
+    stage().innerHTML = `<p class="kicker">Does the statement agree with the passage?</p>
+      <blockquote class="passage">${esc(q.p)}</blockquote><p class="statement">${esc(q.s)}</p>
+      <div class="opts opts-3">${['T', 'F', 'NG'].map(k => `<button class="opt" data-act="ans" data-v="${k}"><kbd>${k[0]}</kbd>${NAME[k]}</button>`).join('')}</div>`;
+    const done = v => { if (lock()) return; const ok = v === q.a; paint('.opt', v, q.a);
+      settle(ok, { id: q.id, title: q.s, answer: NAME[q.a], why: esc(q.why), head: ok ? `Correct. ${NAME[q.a]}.` : (v ? '' : 'Time ran out. ') + `The answer is ${NAME[q.a]}.` }); };
+    handlers.ans = b => done(b.dataset.v); Timer.start(SECS.tfng, () => done(null));
+  },
+  mcq(q) {
+    stage().innerHTML = `<p class="kicker">${esc(q.kicker)}</p>
+      <p class="statement">${esc(q.stem).replace('___', '<span class="gap" id="gap">&nbsp;</span>')}</p>
+      <div class="opts opts-2">${q.options.map((o, i) => `<button class="opt" data-act="ans" data-v="${i}"><kbd>${'ABCD'[i]}</kbd>${esc(o)}</button>`).join('')}</div>`;
+    const done = v => { if (lock()) return; const ok = v === q.answer; paint('.opt', v, q.answer);
+      const g = $('#gap'); if (g) { g.textContent = q.options[q.answer]; g.classList.add('filled'); }
+      settle(ok, { id: q.id, title: q.stem, answer: q.options[q.answer], why: esc(q.why), head: ok ? 'Correct.' : (v == null ? 'Time ran out. ' : '') + `The answer is “${esc(q.options[q.answer])}”.` }); };
+    handlers.ans = b => done(+b.dataset.v); Timer.start(SECS.mcq, () => done(null));
+  },
+  chart(q) {
+    const right = q.opts[q.answer];
+    if (q.variant === 'graph') stage().innerHTML = `<p class="kicker">Which graph does the sentence describe?</p><p class="statement">${esc(right.text)}</p>
+      <div class="opts opts-2 opts-charts">${q.opts.map((o, i) => `<button class="opt opt-chart" data-act="ans" data-v="${i}" aria-label="Graph ${'ABCD'[i]}"><kbd>${'ABCD'[i]}</kbd>${chartSVG(o.seq, q.years, false)}</button>`).join('')}</div>`;
+    else stage().innerHTML = `<p class="kicker">Which sentence describes the graph?</p><figure class="bigchart">${chartSVG(right.seq, q.years, true)}</figure>
+      <div class="opts">${q.opts.map((o, i) => `<button class="opt" data-act="ans" data-v="${i}"><kbd>${'ABCD'[i]}</kbd>${esc(o.text)}</button>`).join('')}</div>`;
+    const gloss = right.verbs.map((v, k) => `“${v}” is ${GLOSS[right.seq[k]]}`).join('; ') + '.';
+    const done = v => { if (lock()) return; const ok = v === q.answer; paint('.opt', v, q.answer);
+      settle(ok, { title: right.text, answer: q.variant === 'graph' ? 'Graph ' + 'ABCD'[q.answer] : 'Sentence ' + 'ABCD'[q.answer], why: esc(gloss), head: ok ? 'Correct.' : (v == null ? 'Time ran out. ' : '') + `It was ${'ABCD'[q.answer]}.` }); };
+    handlers.ans = b => done(+b.dataset.v); Timer.start(SECS.chart, () => done(null));
+  },
+  proof(q) {
+    stage().innerHTML = `<p class="kicker">Tap the one word that is wrong</p>
+      <p class="sentence">${q.tokens.map((t, i) => `<button class="tok" data-act="tok" data-v="${i}">${esc(t)}</button>`).join('')}</p>`;
+    const m = q.tokens[q.wrong].match(/^(.*?)([.,;:]*)$/), word = m[1], tail = m[2];
+    const fixed = q.tokens.map((t, i) => i !== q.wrong ? esc(t) : `<del>${esc(word)}</del>${q.fix ? ` <ins>${esc(q.fix)}</ins>` : ''}${tail}`).join(' ');
+    const done = v => { if (lock()) return; const ok = v === q.wrong; paint('.tok', v, q.wrong);
+      settle(ok, { id: q.id, title: q.tokens.join(' '), answer: q.fix ? `${word} → ${q.fix}` : `delete “${word}”`, why: `<span class="fixed">${fixed}</span><br>${esc(q.why)}`,
+        head: ok ? 'Correct.' : (v == null ? 'Time ran out. ' : '') + `The mistake is “${esc(word)}”.` }); };
+    handlers.tok = b => done(+b.dataset.v); Timer.start(SECS.proof, () => done(null));
+  },
+  pairs(q) {
+    stage().innerHTML = `<p class="kicker">Link each everyday word to its academic twin</p>
+      <div class="pairs"><div class="col">${q.pairs.map((p, i) => `<button class="tile" data-act="tile" data-side="L" data-i="${i}"><span>${esc(p[0])}</span></button>`).join('')}</div>
+      <div class="col col-acad">${q.order.map(i => `<button class="tile" data-act="tile" data-side="R" data-i="${i}"><span>${esc(q.pairs[i][1])}</span></button>`).join('')}</div></div>
+      <p class="hint">Tap a word, then its partner. A wrong link loses that pair.</p>`;
+    let sel = null, closed = 0, hits = 0;
+    const close = (i, ok) => { closed++; if (ok) hits++;
+      $$(`.tile[data-i="${i}"]`, panel).forEach(t => { t.disabled = true; t.classList.remove('is-sel'); t.classList.add(ok ? 'is-right' : 'is-wrong'); t.insertAdjacentHTML('beforeend', `<span class="tag">${closed}</span>`); });
+      mark(ok, 'w:' + q.pairs[i][0]);
+      if (!ok) run.log.push({ ok: false, title: `“${q.pairs[i][0]}”`, answer: q.pairs[i][1], why: '' });
+      if (closed === q.pairs.length) end(false); };
+    const end = late => { run.phase = 'feedback'; $$('.tile', panel).forEach(t => t.disabled = true);
+      feedback(hits === q.pairs.length, `${late ? 'Time ran out. ' : ''}${hits} of ${q.pairs.length} pairs linked.`, `<ul>${q.pairs.map(p => `<li>${esc(p[0])} → <i>${esc(p[1])}</i></li>`).join('')}</ul>`); };
+    handlers.tile = b => { if (run.phase !== 'question') return;
+      if (!sel || sel.dataset.side === b.dataset.side) { if (sel) sel.classList.remove('is-sel'); sel = sel === b ? null : b; if (sel) sel.classList.add('is-sel'); return; }
+      const a = sel; sel = null; a.classList.remove('is-sel'); close(a.dataset.i, a.dataset.i === b.dataset.i); };
+    Timer.start(SECS.pairs, () => { if (run.phase !== 'question') return; q.pairs.forEach((_, i) => { if (!$(`.tile[data-i="${i}"]`, panel).disabled) close(i, false); }); if (run.phase === 'question') end(true); });
+  },
+  listen(q) {
+    stage().innerHTML = `<p class="kicker">Complete the form with what you hear</p>
+      <div class="formcard"><p class="form-title">${esc(q.form)}</p>
+        <div class="form-actions">${canSpeak ? `<button class="btn btn-quiet" data-act="play" id="playBtn">${ICON_PLAY}<span>Play the recording</span></button>` : ''}
+          <button class="linkish" data-act="glimpse">${canSpeak ? 'No sound? Read it instead' : 'Show the line for a moment'}</button></div>
+        <p class="glimpse" id="glimpse" hidden></p>
+        <form class="field" id="listenForm" autocomplete="off"><label for="listenInput">${esc(q.field)}</label>
+          <input id="listenInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Listen first" disabled>
+          <button class="btn" type="submit" id="checkBtn" disabled>Check</button></form>
+        <p class="hint">${esc(q.hint)}</p></div>`;
+    const input = $('#listenInput'); let armed = false, hideT = 0;
+    const done = val => { if (lock()) return; hush(); clearTimeout(hideT); $('#glimpse').hidden = true;
+      const given = String(val || '').trim(), ok = !!given && normAnswer(q.kind, given) === q.key;
+      input.disabled = true; $('#checkBtn').disabled = true; input.classList.add(ok ? 'is-right' : 'is-wrong'); $$('[data-act="play"],[data-act="glimpse"]', panel).forEach(b => b.disabled = true);
+      settle(ok, { title: q.field, answer: q.show, why: `Recording: “${esc(q.say)}”${ok ? '' : '<br>' + esc(q.tip)}`,
+        head: ok ? `Correct. ${esc(q.show)}` : given ? `You wrote “${esc(given)}”. The form should read ${esc(q.show)}.` : `Nothing written. The form should read ${esc(q.show)}.` }); };
+    const arm = () => { if (armed) return; armed = true; input.disabled = false; input.placeholder = ''; $('#checkBtn').disabled = false; input.focus({ preventScroll: true }); Timer.start(SECS.listen, () => done(input.value)); };
+    handlers.play = b => { speak(q.say); $('span', b).textContent = 'Hear it again'; arm(); };
+    handlers.glimpse = () => { const g = $('#glimpse'); g.textContent = q.say; g.hidden = false; clearTimeout(hideT); hideT = setTimeout(() => { g.hidden = true; }, Math.min(6500, 1600 + 45 * q.say.length)); arm(); };
+    $('#listenForm').addEventListener('submit', e => { e.preventDefault(); done(input.value); });
+    Timer.idle();
+  },
+};
+
+/* ================= results ================= */
+function finish() {
+  Timer.stop(); hush(); run.phase = 'result';
+  const flat = run.marks.flat(), raw = flat.filter(m => m.ok).length, tot = flat.length, misses = run.log.filter(l => !l.ok);
+  const missHTML = misses.length ? `<details class="misses"${misses.length <= 4 ? ' open' : ''}><summary>${misses.length === 1 ? 'The one you missed' : `The ${misses.length} you missed`}</summary><ul>${misses.map(l => `<li><b>${esc(l.title)}</b><span>${esc(l.answer)}</span></li>`).join('')}</ul></details>` : '';
+  let html, weakest = null;
+  if (run.mode === 'sitting') {
+    const band = toBand(raw, tot); save.sittings++; if (save.bestBand == null || band > save.bestBand) save.bestBand = band;
+    const date = today(); save.last = { seed: run.seed, stems: run.marks, lens: run.sections.map(s => s.len), band, date, no: save.sittings };
+    run.sections.forEach((s, i) => { const pct = Math.round(100 * run.marks[i].filter(m => m.ok).length / s.len); if (save.best[s.paper] == null || pct > save.best[s.paper]) save.best[s.paper] = pct; });
+    persist(); Plate.bloom(band); plateLabel(`Specimen No. ${pad3(save.sittings)}`, `${date} · ${petalText(band)}`);
+    const scores = run.sections.map((s, i) => run.marks[i].filter(m => m.ok).length), low = Math.min(...scores);
+    if (low < 5) weakest = PAPERS[scores.indexOf(low)];
+    html = `<p class="kicker">Sitting No. ${pad3(save.sittings)} · ${date}</p>
+      <div class="band"><span class="band-n">${fmtBand(band)}</span><div class="band-side"><span class="mono">Band</span><span class="band-d">${DESCRIPTOR[Math.floor(band)]}</span><span class="mono">${raw} of ${tot} correct</span></div></div>
+      <table class="score-table"><tbody>${run.sections.map((s, i) => `<tr><td class="num">${ROMAN[i]}</td><td>${PAPERS[i].skill}</td><td><div class="pips">${pipsHTML(run.marks[i], s.len, false)}</div></td><td class="sc">${scores[i]} / ${s.len}</td></tr>`).join('')}</tbody></table>
+      ${missHTML}
+      <div class="actions"><button class="btn" data-act="again">Sit again</button>${weakest ? `<button class="btn btn-quiet" data-act="weak">Practise ${weakest.skill}</button>` : ''}<button class="btn btn-quiet" data-act="home">Home</button></div>
+      <p class="fine">The band uses the IELTS Listening raw-score table, scaled from 40 questions to 30. It is a game score, not a prediction of your result.</p>`;
+  } else {
+    if (run.mode === 'practice') { const pct = Math.round(100 * raw / tot); if (save.best[run.key] == null || pct > save.best[run.key]) save.best[run.key] = pct; persist(); }
+    plateLabel(run.mode === 'practice' ? 'Practice specimen' : 'Review specimen', `${raw} of ${tot} leaves`);
+    const title = run.mode === 'practice' ? paperOf(run.key).skill + ' practice' : 'Review';
+    html = `<p class="kicker">${esc(title)} · ${today()}</p>
+      <div class="band"><span class="band-n">${raw}</span><div class="band-side"><span class="mono">out of ${tot}</span><span class="band-d">${raw === tot ? 'Every leaf grown' : raw >= tot * .7 ? 'A healthy stem' : 'Room to grow'}</span>${run.mode === 'review' ? `<span class="mono">${save.missed.length} left on your list</span>` : ''}</div></div>
+      ${missHTML}
+      <div class="actions"><button class="btn" data-act="again">${run.mode === 'practice' ? 'Practise again' : save.missed.length ? 'Review again' : 'Begin a sitting'}</button><button class="btn btn-quiet" data-act="sitting">${run.mode === 'review' && !save.missed.length ? '' : 'Begin a sitting'}</button><button class="btn btn-quiet" data-act="home">Home</button></div>`;
+  }
+  const mode = run.mode, key = run.key;
+  screen('result', `<div class="result">${html}</div>`);
+  $$('.actions .btn', panel).forEach(b => { if (!b.textContent.trim()) b.remove(); });
+  handlers = { home, sitting: () => startRun('sitting'), weak: () => startRun('practice', weakest.key),
+    again: () => mode === 'review' && !save.missed.length ? startRun('sitting') : startRun(mode, key) };
+}
+
+/* ================= boot ================= */
+function start(data) {
+  const r = data && data.run;
+  if (r && r.sections && r.phase !== 'result') { // an update arrived mid-game: pick the sitting back up
+    run = r; if (run.phase === 'feedback') { if (++run.qi >= run.sections[run.si].qs.length) { run.qi = 0; run.si++; } }
+    while (run.si < run.sections.length && run.marks[run.si].length >= run.sections[run.si].len) { run.si++; run.qi = 0; }
+    if (run.si >= run.sections.length) return home();
+    run.marks[run.si].length = Math.min(run.marks[run.si].length, run.sections[run.si].qs.length > 1 ? run.qi : 0);
+    enterRun();
+  } else home();
+}
+const hot = window.claude && window.claude.hot;
+try { if (hot && hot.snapshot) hot.snapshot(() => ({ run: run ? JSON.parse(JSON.stringify(run)) : null })); } catch (e) {}
+if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
