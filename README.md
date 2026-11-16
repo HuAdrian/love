@@ -17,6 +17,15 @@ cyanotype specimen, and at the end the flower opens with one petal for each band
 You can also practise a single paper, switch the timer or the sound effects off, and replay the
 questions you got wrong. Progress is kept in the browser's local storage.
 
+## Scoring and rewards
+
+- **Score and streaks.** A right answer is worth 100 points plus up to 100 for speed. Every three
+  right answers in a row raise the multiplier, up to ×5. A wrong answer resets it.
+- **Endless meadow.** Papers keep coming until you make three mistakes. Your best run is saved.
+- **Levels.** Score turns into XP, and each level has a title, from Seed to Nine-petal laureate.
+- **Plate colours.** Levels 3, 5, 7 and 9 unlock new colours for the specimen plate.
+- **Badges.** Fifteen to earn, for streaks, bands, daily play and fixing old mistakes.
+
 The band uses the IELTS Listening raw-score table, scaled from 40 questions to 30. It is a game
 score, not a prediction of a real result.
 
